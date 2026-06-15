@@ -124,9 +124,13 @@
     <div class="cat-filter" id="cat-filter"></div>
     <div class="veg-grid" id="veg-grid"></div>
     <div class="action-bar">
-      <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick="triggerImport()"><i class="ti ti-upload"></i> Import</button>
+      </div>
       <button class="save-btn" onclick="saveWeek()"><i class="ti ti-check"></i> Save week</button>
     </div>
+    <input type="file" id="import-file" accept=".json,.csv" style="display:none" onchange="handleImport(event)">
   </div>
 
   <div id="panel-trends" class="panel">
@@ -237,6 +241,46 @@ function exportJSON() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'veggie-tracker.json'; a.click();
   showToast('JSON exported!');
 }
+function triggerImport() {
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-file').click();
+}
+function handleImport(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      let imported = {};
+      if(file.name.endsWith('.json')) {
+        imported = JSON.parse(e.target.result);
+        if(typeof imported !== 'object' || Array.isArray(imported)) throw new Error('Invalid JSON structure');
+        // Validate keys look like week keys
+        Object.keys(imported).forEach(k => { if(!/^\d{4}-W\d{2}$/.test(k)) throw new Error(`Unexpected key: ${k}`); });
+      } else if(file.name.endsWith('.csv')) {
+        const lines = e.target.result.trim().split('\n').slice(1); // skip header
+        lines.forEach(line => {
+          const cols = line.match(/(".*?"|[^,]+)/g)||[];
+          const clean = cols.map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"'));
+          const weekKey = clean[0];
+          const plants = clean[2] ? clean[2].split(';').map(s=>s.trim()).filter(Boolean) : [];
+          if(weekKey && /^\d{4}-W\d{2}$/.test(weekKey)) imported[weekKey] = plants;
+        });
+      } else { throw new Error('Unsupported file type'); }
+      const existingWeeks = Object.keys(state.data).length;
+      const importedWeeks = Object.keys(imported).length;
+      if(!importedWeeks) { showToast('No valid data found in file.'); return; }
+      // Merge: imported data takes precedence for matching weeks
+      state.data = { ...state.data, ...imported };
+      save();
+      renderLog();
+      showToast(`Imported ${importedWeeks} week${importedWeeks!==1?'s':''} (${existingWeeks} already saved) ✓`);
+    } catch(err) {
+      showToast('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
 
 function renderTrends() {
   const all = {}; VEGETABLES.forEach(v=>{ all[v.name]=0; });
@@ -277,7 +321,10 @@ function renderHistory() {
   const c = document.getElementById('history-content');
   const weeks = Object.keys(state.data).sort().reverse();
   if(!weeks.length){ c.innerHTML='<div class="no-data">No history yet. Start logging!</div>'; return; }
-  c.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-bottom:1rem"><button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export all as CSV</button></div>` +
+  c.innerHTML = `<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:1rem">
+    <button class="export-btn" onclick="triggerImport()"><i class="ti ti-upload"></i> Import</button>
+    <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+  </div>` +
     weeks.map(k=>{
       const items = state.data[k]||[];
       const isCurrent = k===getWeekKey(new Date());
