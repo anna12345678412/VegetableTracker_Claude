@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veggie Tracker — 30 Plants a Week</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+  <h1><i class="ti ti-leaf"></i> Veggie tracker — 30 plants a week</h1>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('log')"><i class="ti ti-calendar"></i> Weekly log</button>
+    <button class="tab" onclick="switchTab('trends')"><i class="ti ti-chart-bar"></i> Trends</button>
+    <button class="tab" onclick="switchTab('history')"><i class="ti ti-history"></i> History</button>
+    <button class="tab" onclick="switchTab('github')"><i class="ti ti-brand-github"></i> GitHub sync</button>
+  </div>
+
+  <div id="panel-log" class="panel active">
+    <div class="week-header">
+      <div class="week-nav">
+        <button class="nav-btn" onclick="changeWeek(-1)" aria-label="Previous week"><i class="ti ti-chevron-left"></i></button>
+        <span class="week-label" id="week-label"></span>
+        <button class="nav-btn" onclick="changeWeek(1)" aria-label="Next week"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <span class="count-badge"><span id="sel-count">0</span> / 30 plants</span>
+    </div>
+    <div class="search-bar">
+      <i class="ti ti-search si"></i>
+      <input type="text" placeholder="Search vegetables & fruits…" id="search-input" oninput="filterVeg()">
+    </div>
+    <div class="cat-filter" id="cat-filter"></div>
+    <div class="veg-grid" id="veg-grid"></div>
+    <div class="action-bar">
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+        <button class="export-btn" onclick="triggerImport()"><i class="ti ti-upload"></i> Import</button>
+      </div>
+      <button class="save-btn" onclick="saveWeek()"><i class="ti ti-check"></i> Save week</button>
+    </div>
+    <input type="file" id="import-file" accept=".json,.csv" style="display:none" onchange="handleImport(event)">
+  </div>
+
+  <div id="panel-trends" class="panel">
+    <div class="trend-section" id="trend-content"></div>
+  </div>
+
+  <div id="panel-history" class="panel">
+    <div id="history-content"></div>
+  </div>
+
+  <div id="panel-github" class="panel">
+    <div id="github-content"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- Load data first, then app logic which depends on it -->
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
