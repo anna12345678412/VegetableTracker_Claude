@@ -29,6 +29,7 @@ const CATEGORY_COLORS = {
   "Berries": "#5B6EE1",
   "Citrus": "#F2A93B",
   "Tropical": "#F26B4A"
+  "Herbs": "#6FA8DC",
 };
 
 let categoryChart = null;
