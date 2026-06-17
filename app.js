@@ -28,8 +28,8 @@ const CATEGORY_COLORS = {
   "Fruits": "#E24B4A",
   "Berries": "#5B6EE1",
   "Citrus": "#F2A93B",
-  "Tropical": "#F26B4A"
-  "Herbs": "#6FA8DC",
+  "Tropical": "#F26B4A",
+  "Herbs": "#6FA8DC"
 };
 
 let categoryChart = null;
